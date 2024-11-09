@@ -1,0 +1,54 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Select Notification Sound"
+        android:textSize="20sp"
+        android:layout_gravity="center_horizontal"
+        android:paddingBottom="16dp"/>
+
+    <RadioGroup
+        android:id="@+id/soundOptionsGroup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <RadioButton
+            android:id="@+id/soundOption1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sound 1"/>
+
+        <RadioButton
+            android:id="@+id/soundOption2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sound 2"/>
+
+        <RadioButton
+            android:id="@+id/soundOption3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sound 3"/>
+    </RadioGroup>
+
+    <Button
+        android:id="@+id/previewButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Preview Selected Sound"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="16dp"/>
+
+    <Button
+        android:id="@+id/saveButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Save Selection"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="16dp"/>
+</LinearLayout>
