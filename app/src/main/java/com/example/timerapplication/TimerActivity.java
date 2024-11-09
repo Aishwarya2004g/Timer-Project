@@ -54,9 +54,27 @@ public class TimerActivity extends AppCompatActivity {
         String minutesText = etMinutes.getText().toString();
         String secondsText = etSeconds.getText().toString();
 
-        int hours = hoursText.isEmpty() ? 0 : Integer.parseInt(hoursText);
-        int minutes = minutesText.isEmpty() ? 0 : Integer.parseInt(minutesText);
-        int seconds = secondsText.isEmpty() ? 0 : Integer.parseInt(secondsText);
+        // Check if any of the input fields are empty
+        if (hoursText.isEmpty() || minutesText.isEmpty() || secondsText.isEmpty()) {
+            Toast.makeText(TimerActivity.this, "Please fill all input fields (hours, minutes, and seconds).", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Check if the inputs have more than two digits
+        if (hoursText.length() > 2 || minutesText.length() > 2 || secondsText.length() > 2) {
+            Toast.makeText(TimerActivity.this, "Please enter valid time (up to 2 digits for hours, minutes, and seconds).", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        int hours = Integer.parseInt(hoursText);
+        int minutes = Integer.parseInt(minutesText);
+        int seconds = Integer.parseInt(secondsText);
+
+        // Validate the input range for hours, minutes, and seconds
+        if (hours > 23 || minutes > 59 || seconds > 59) {
+            Toast.makeText(TimerActivity.this, "Invalid time input. Please enter valid hours (0-23), minutes (0-59), and seconds (0-59).", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         // Calculate total time in milliseconds
         long timeInMillis = (hours * 3600 * 1000) + (minutes * 60 * 1000) + (seconds * 1000);
@@ -85,6 +103,7 @@ public class TimerActivity extends AppCompatActivity {
             buttonPause.setEnabled(true);
         }
     }
+
 
     private void pauseTimer() {
         if (countDownTimer != null) {

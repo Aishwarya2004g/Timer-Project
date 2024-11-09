@@ -2,6 +2,7 @@ package com.example.timerapplication;
 
 import android.database.Cursor;
 import android.os.Bundle;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import androidx.appcompat.app.AppCompatActivity;
@@ -15,6 +16,10 @@ public class TimerHistoryActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_timer_history);
+        // Set up back navigation
+        ImageView backArrow = findViewById(R.id.back_arrow);
+        backArrow.setOnClickListener(v -> onBackPressed());
+
 
         listView = findViewById(R.id.historyListView);
         dbHelper = new TimerDatabaseHelper(this);
