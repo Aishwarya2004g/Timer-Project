@@ -23,6 +23,9 @@
         </activity>
 
         <activity android:name=".TimerActivity" />
+        <activity android:name=".SoundSettingsActivity" />
+        <activity android:name=".TimerHistoryActivity"/>
+
     </application>
 
 </manifest>
