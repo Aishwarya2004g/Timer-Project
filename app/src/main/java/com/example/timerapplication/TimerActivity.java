@@ -23,6 +23,7 @@ public class TimerActivity extends AppCompatActivity {
     private long timeLeftInMillis;
     private TimerDatabaseHelper dbHelper;
     private String selectedSound = "sound1"; // Default sound
+    private String originalDuration;  // Store the original duration
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,8 +58,12 @@ public class TimerActivity extends AppCompatActivity {
         int minutes = minutesText.isEmpty() ? 0 : Integer.parseInt(minutesText);
         int seconds = secondsText.isEmpty() ? 0 : Integer.parseInt(secondsText);
 
+        // Calculate total time in milliseconds
         long timeInMillis = (hours * 3600 * 1000) + (minutes * 60 * 1000) + (seconds * 1000);
         timeLeftInMillis = timeInMillis;
+
+        // Save the original duration
+        originalDuration = String.format(Locale.getDefault(), "%02d:%02d:%02d", hours, minutes, seconds);
 
         if (timeInMillis > 0) {
             countDownTimer = new CountDownTimer(timeInMillis, 1000) {
@@ -71,7 +76,7 @@ public class TimerActivity extends AppCompatActivity {
                 @Override
                 public void onFinish() {
                     playSoundAndNotify();
-                    saveTimerToHistory();
+                    saveTimerToHistory(); // Save the original duration
                 }
             }.start();
 
@@ -131,8 +136,7 @@ public class TimerActivity extends AppCompatActivity {
     }
 
     private void saveTimerToHistory() {
-        String duration = tvTimerDisplay.getText().toString();
         String endTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
-        dbHelper.saveTimerHistory(duration, endTime);
+        dbHelper.saveTimerHistory(originalDuration, endTime); // Use original duration
     }
 }
