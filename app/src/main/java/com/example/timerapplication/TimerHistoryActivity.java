@@ -16,7 +16,7 @@ public class TimerHistoryActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_timer_history);
-        // Set up back navigation
+        //  back navigation
         ImageView backArrow = findViewById(R.id.back_arrow);
         backArrow.setOnClickListener(v -> onBackPressed());
 
