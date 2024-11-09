@@ -3,14 +3,12 @@ package com.example.timerapplication;
 import android.content.SharedPreferences;
 import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
-import android.widget.RadioGroup;
-import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class SoundSettingsActivity extends AppCompatActivity {
-    private RadioGroup soundOptionsGroup;
-    private Button previewButton, saveButton;
+
     private MediaPlayer mediaPlayer;
     private SharedPreferences preferences;
 
@@ -19,54 +17,33 @@ public class SoundSettingsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sound_settings);
 
-        preferences = getSharedPreferences("QuickTimerPrefs", MODE_PRIVATE);
+        preferences = getSharedPreferences("sound_preferences", MODE_PRIVATE);
 
-        soundOptionsGroup = findViewById(R.id.soundOptionsGroup);
-        previewButton = findViewById(R.id.previewButton);
-        saveButton = findViewById(R.id.saveButton);
-
-        previewButton.setOnClickListener(v -> previewSelectedSound());
-        saveButton.setOnClickListener(v -> saveSelectedSound());
+        findViewById(R.id.soundOption1).setOnClickListener(v -> selectSound("sound1", R.raw.sound1));
+        findViewById(R.id.soundOption2).setOnClickListener(v -> selectSound("sound2", R.raw.sound2));
+        findViewById(R.id.soundOption3).setOnClickListener(v -> selectSound("sound3", R.raw.sound3));
     }
 
-    private void previewSelectedSound() {
-        int selectedSoundId = getSelectedSoundId();
-
-        // Stop any currently playing sound before previewing new one
-        if (mediaPlayer != null) {
-            mediaPlayer.release();
-        }
-
-        mediaPlayer = MediaPlayer.create(this, selectedSoundId);
+    private void selectSound(String soundKey, int soundRes) {
+        stopMediaPlayer();
+        mediaPlayer = MediaPlayer.create(this, soundRes);
         mediaPlayer.start();
-    }
 
-    private void saveSelectedSound() {
-        int selectedSoundId = getSelectedSoundId();
         SharedPreferences.Editor editor = preferences.edit();
-        editor.putInt("selectedSound", selectedSoundId);
+        editor.putString("selected_sound", soundKey);
         editor.apply();
-
-        Toast.makeText(this, "Sound selection saved", Toast.LENGTH_SHORT).show();
     }
 
-    private int getSelectedSoundId() {
-        int selectedRadioId = soundOptionsGroup.getCheckedRadioButtonId();
-
-        if (selectedRadioId == R.id.soundOption1) {
-            return R.raw.sound1;
-        } else if (selectedRadioId == R.id.soundOption2) {
-            return R.raw.sound2;
-        } else {
-            return R.raw.sound3;
+    private void stopMediaPlayer() {
+        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+            mediaPlayer.stop();
+            mediaPlayer.release();
         }
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (mediaPlayer != null) {
-            mediaPlayer.release();
-        }
+        stopMediaPlayer();
     }
 }

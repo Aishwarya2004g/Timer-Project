@@ -10,46 +10,58 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 public class TimerActivity extends AppCompatActivity {
-    private TextView timerDisplay;
-    private EditText inputHours, inputMinutes, inputSeconds;
-    private Button startButton, pauseButton, resetButton;
-    private CountDownTimer timer;
-    private boolean isRunning = false;
-    private long timeLeftInMillis = 0;
-    private MediaPlayer mediaPlayer;
-    private SharedPreferences preferences;
+    private TextView tvTimerDisplay;
+    private EditText etHours, etMinutes, etSeconds;
+    private Button buttonStart, buttonPause, buttonReset, buttonSoundSettings, buttonTimerHistory;
+    private CountDownTimer countDownTimer;
+    private boolean isTimerRunning;
+    private long timeLeftInMillis;
+    private TimerDatabaseHelper dbHelper;
+    private String selectedSound = "sound1"; // Default sound
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_timer);
 
-        preferences = getSharedPreferences("QuickTimerPrefs", MODE_PRIVATE);
-        int soundId = preferences.getInt("selectedSound", R.raw.sound1); // default sound
+        tvTimerDisplay = findViewById(R.id.tvTimerDisplay);
+        etHours = findViewById(R.id.etHours);
+        etMinutes = findViewById(R.id.etMinutes);
+        etSeconds = findViewById(R.id.etSeconds);
+        buttonStart = findViewById(R.id.buttonStart);
+        buttonPause = findViewById(R.id.buttonPause);
+        buttonReset = findViewById(R.id.buttonReset);
+        buttonSoundSettings = findViewById(R.id.buttonSoundSettings);
+        buttonTimerHistory = findViewById(R.id.buttonTimerHistory);
 
-        timerDisplay = findViewById(R.id.timerDisplay);
-        inputHours = findViewById(R.id.inputHours);
-        inputMinutes = findViewById(R.id.inputMinutes);
-        inputSeconds = findViewById(R.id.inputSeconds);
-        startButton = findViewById(R.id.startButton);
-        pauseButton = findViewById(R.id.pauseButton);
-        resetButton = findViewById(R.id.resetButton);
+        dbHelper = new TimerDatabaseHelper(this);
 
-        startButton.setOnClickListener(v -> startTimer());
-        pauseButton.setOnClickListener(v -> pauseTimer());
-        resetButton.setOnClickListener(v -> resetTimer());
+        buttonStart.setOnClickListener(v -> startTimer());
+        buttonPause.setOnClickListener(v -> pauseTimer());
+        buttonReset.setOnClickListener(v -> resetTimer());
+        buttonSoundSettings.setOnClickListener(v -> startActivity(new Intent(TimerActivity.this, SoundSettingsActivity.class)));
+        buttonTimerHistory.setOnClickListener(v -> startActivity(new Intent(TimerActivity.this, TimerHistoryActivity.class)));
     }
 
     private void startTimer() {
-        if (!isRunning) {
-            int hours = Integer.parseInt(inputHours.getText().toString());
-            int minutes = Integer.parseInt(inputMinutes.getText().toString());
-            int seconds = Integer.parseInt(inputSeconds.getText().toString());
-            timeLeftInMillis = (hours * 3600 + minutes * 60 + seconds) * 1000;
+        String hoursText = etHours.getText().toString();
+        String minutesText = etMinutes.getText().toString();
+        String secondsText = etSeconds.getText().toString();
 
-            timer = new CountDownTimer(timeLeftInMillis, 1000) {
+        int hours = hoursText.isEmpty() ? 0 : Integer.parseInt(hoursText);
+        int minutes = minutesText.isEmpty() ? 0 : Integer.parseInt(minutesText);
+        int seconds = secondsText.isEmpty() ? 0 : Integer.parseInt(secondsText);
+
+        long timeInMillis = (hours * 3600 * 1000) + (minutes * 60 * 1000) + (seconds * 1000);
+        timeLeftInMillis = timeInMillis;
+
+        if (timeInMillis > 0) {
+            countDownTimer = new CountDownTimer(timeInMillis, 1000) {
                 @Override
                 public void onTick(long millisUntilFinished) {
                     timeLeftInMillis = millisUntilFinished;
@@ -58,37 +70,69 @@ public class TimerActivity extends AppCompatActivity {
 
                 @Override
                 public void onFinish() {
-                    mediaPlayer = MediaPlayer.create(TimerActivity.this, R.raw.notification_sound); // Use selected sound
-                    mediaPlayer.start();
-                    Toast.makeText(TimerActivity.this, "Time's up!", Toast.LENGTH_SHORT).show();
-                    isRunning = false;
+                    playSoundAndNotify();
+                    saveTimerToHistory();
                 }
-            };
-            timer.start();
-            isRunning = true;
+            }.start();
+
+            isTimerRunning = true;
+            buttonStart.setEnabled(false);
+            buttonPause.setEnabled(true);
         }
     }
 
     private void pauseTimer() {
-        if (isRunning) {
-            timer.cancel();
-            isRunning = false;
+        if (countDownTimer != null) {
+            countDownTimer.cancel();
+            isTimerRunning = false;
+            buttonStart.setEnabled(true);
+            buttonPause.setEnabled(false);
         }
     }
 
     private void resetTimer() {
-        if (isRunning) {
-            timer.cancel();
+        if (countDownTimer != null) {
+            countDownTimer.cancel();
         }
+
         timeLeftInMillis = 0;
         updateTimerDisplay();
-        isRunning = false;
+        isTimerRunning = false;
+        buttonStart.setEnabled(true);
+        buttonPause.setEnabled(false);
     }
 
     private void updateTimerDisplay() {
         int hours = (int) (timeLeftInMillis / 1000) / 3600;
         int minutes = (int) ((timeLeftInMillis / 1000) % 3600) / 60;
         int seconds = (int) (timeLeftInMillis / 1000) % 60;
-        timerDisplay.setText(String.format("%02d:%02d:%02d", hours, minutes, seconds));
+
+        tvTimerDisplay.setText(String.format(Locale.getDefault(), "%02d:%02d:%02d", hours, minutes, seconds));
+    }
+
+    private void playSoundAndNotify() {
+        SharedPreferences prefs = getSharedPreferences("sound_preferences", MODE_PRIVATE);
+        selectedSound = prefs.getString("selected_sound", "sound1");
+
+        int soundResourceId = getSoundResourceId(selectedSound);
+        MediaPlayer.create(TimerActivity.this, soundResourceId).start();
+        Toast.makeText(TimerActivity.this, "Time's up!", Toast.LENGTH_SHORT).show();
+    }
+
+    private int getSoundResourceId(String soundName) {
+        switch (soundName) {
+            case "sound2":
+                return R.raw.sound2;
+            case "sound3":
+                return R.raw.sound3;
+            default:
+                return R.raw.sound1;
+        }
+    }
+
+    private void saveTimerToHistory() {
+        String duration = tvTimerDisplay.getText().toString();
+        String endTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
+        dbHelper.saveTimerHistory(duration, endTime);
     }
 }
